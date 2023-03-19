@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -42,6 +43,7 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 		headerDict := [2]string{key, strings.Join(values, ", ")}
 		headers = append(headers, headerDict)
 	}
+	sort.Slice(headers, func(i, j int) bool { return headers[i][0] < headers[j][0] })
 	htmlBody += fmt.Sprintln(makeTableElement(headers))
 
 	// Body
