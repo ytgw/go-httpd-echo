@@ -26,6 +26,7 @@ func TestGetHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+	request.Header.Add("Accept-Encoding", "gzip, deflate, br")
 	responseRecorder := httptest.NewRecorder()
 	testHandler := http.HandlerFunc(handler)
 
@@ -36,7 +37,11 @@ func TestGetHandler(t *testing.T) {
 	assertIsStatusOK(t, responseRecorder.Code)
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Basic Request Information</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Method:</td><td>GET</td></tr>")
+
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Other Request Headers</h2>")
+	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Accept:</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</td></tr>")
+	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Accept-Encoding:</td><td>gzip, deflate, br</td></tr>")
+
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Body</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "Empty request body.")
 }
