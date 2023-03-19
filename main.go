@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 func makeTableElement(keyValues [][2]string) string {
@@ -36,15 +38,33 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 	}
 	htmlBody += fmt.Sprintln(makeTableElement(basicInfos))
 
-	// Other Headers
-	htmlBody += fmt.Sprintln("<h2>Other Request Headers</h2>")
-	var headers = [][2]string{}
+	// Check if the header is added by TCP Exposer
+	var tcpExposerHeaders = [][2]string{}
+	var otherHeaders = [][2]string{}
 	for key, values := range r.Header {
-		headerDict := [2]string{key, strings.Join(values, ", ")}
-		headers = append(headers, headerDict)
+		header := [2]string{key, strings.Join(values, ", ")}
+
+		tcpExposerHeaderKeys := []string{"X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto", "X-Forwarded-Port", "X-Forwarded-Server", "X-Real-Ip"}
+		if strings.HasSuffix(r.Host, ".tcpexposer.com") && slices.Contains(tcpExposerHeaderKeys, key) {
+			tcpExposerHeaders = append(tcpExposerHeaders, header)
+		} else {
+			otherHeaders = append(otherHeaders, header)
+		}
 	}
-	sort.Slice(headers, func(i, j int) bool { return headers[i][0] < headers[j][0] })
-	htmlBody += fmt.Sprintln(makeTableElement(headers))
+
+	// TCP Exposer Header
+	if len(tcpExposerHeaders) > 0 {
+		htmlBody += fmt.Sprintln("<h2>Request Headers Add by TCP Exposer</h2>")
+		sort.Slice(tcpExposerHeaders, func(i, j int) bool { return tcpExposerHeaders[i][0] < tcpExposerHeaders[j][0] })
+		htmlBody += fmt.Sprintln(makeTableElement(tcpExposerHeaders))
+	}
+
+	// Other Headers
+	if len(otherHeaders) > 0 {
+		htmlBody += fmt.Sprintln("<h2>Other Request Headers</h2>")
+		sort.Slice(otherHeaders, func(i, j int) bool { return otherHeaders[i][0] < otherHeaders[j][0] })
+		htmlBody += fmt.Sprintln(makeTableElement(otherHeaders))
+	}
 
 	// Body
 	htmlBody += fmt.Sprintln("<h2>Request Body</h2>")
