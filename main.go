@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"html"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -25,7 +26,7 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 	htmlBody += fmt.Sprintln("<h1>" + html.EscapeString(h1) + "</h1>")
 
 	// Basic Information
-	htmlBody += fmt.Sprintln("<h2>Basic Information</h2>")
+	htmlBody += fmt.Sprintln("<h2>Basic Request Information</h2>")
 	basicInfos := [][2]string{
 		{"Method", r.Method},
 		{"URL", r.URL.String()},
@@ -35,13 +36,27 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 	htmlBody += fmt.Sprintln(makeTableElement(basicInfos))
 
 	// Other Headers
-	htmlBody += fmt.Sprintln("<h2>Other Headers</h2>")
+	htmlBody += fmt.Sprintln("<h2>Other Request Headers</h2>")
 	var headers = [][2]string{}
 	for key, values := range r.Header {
 		headerDict := [2]string{key, strings.Join(values, ", ")}
 		headers = append(headers, headerDict)
 	}
 	htmlBody += fmt.Sprintln(makeTableElement(headers))
+
+	// Body
+	htmlBody += fmt.Sprintln("<h2>Request Body</h2>")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		htmlBody += fmt.Sprintln("Failed to read request body.")
+	} else {
+		requestBody := string(body)
+		if len(requestBody) > 0 {
+			htmlBody += fmt.Sprintln(html.EscapeString(requestBody))
+		} else {
+			htmlBody += fmt.Sprintln("Empty request body.")
+		}
+	}
 
 	// return
 	return htmlBody
