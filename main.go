@@ -5,6 +5,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func makeTableElement(keyValues [][2]string) string {
@@ -32,6 +33,15 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 		{"Host", r.Host},
 	}
 	htmlBody += fmt.Sprintln(makeTableElement(basicInfos))
+
+	// Other Headers
+	htmlBody += fmt.Sprintln("<h2>Other Headers</h2>")
+	var headers = [][2]string{}
+	for key, values := range r.Header {
+		headerDict := [2]string{key, strings.Join(values, ", ")}
+		headers = append(headers, headerDict)
+	}
+	htmlBody += fmt.Sprintln(makeTableElement(headers))
 
 	// return
 	return htmlBody
