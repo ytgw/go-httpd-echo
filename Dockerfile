@@ -1,6 +1,7 @@
 FROM golang:1.20-alpine as builder
 WORKDIR /app
-COPY main.go go.mod go.sum ./
+COPY go.mod go.sum ./
+COPY main.go ./
 RUN go build
 
 FROM scratch as release
