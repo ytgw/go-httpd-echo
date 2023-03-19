@@ -82,7 +82,7 @@ func TestPostHandler(t *testing.T) {
 
 func TestTCPExposerHandler(t *testing.T) {
 	// setup
-	tcpExposerHeaders := [][2]string{{"X-Forwarded-Proto", "http"}}
+	tcpExposerHeaders := [][2]string{{"X-Forwarded-Proto", "http"}, {"X-Forwarded-Port", "80"}}
 	request := createRequest("GET", "http://echo.tcpexposer.com/", "", tcpExposerHeaders)
 	responseRecorder := httptest.NewRecorder()
 	testHandler := http.HandlerFunc(handler)
