@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,14 +20,29 @@ func assertContainsBody(t *testing.T, body string, substring string) {
 	}
 }
 
-func TestGetHandler(t *testing.T) {
-	// setup
-	request, err := http.NewRequest("GET", "http://example.com/", strings.NewReader(""))
+func createRequest(method string, url string, body string, headers [][2]string) *http.Request {
+	request, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
+
 	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
 	request.Header.Add("Accept-Encoding", "gzip, deflate, br")
+	for _, header := range headers {
+		request.Header.Add(header[0], header[1])
+	}
+	return request
+}
+
+func assertContainCommonHeader(t *testing.T, body string) {
+	assertContainsBody(t, body, "<h2>Other Request Headers</h2>")
+	assertContainsBody(t, body, "<tr><td>Accept:</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</td></tr>")
+	assertContainsBody(t, body, "<tr><td>Accept-Encoding:</td><td>gzip, deflate, br</td></tr>")
+}
+
+func TestGetHandler(t *testing.T) {
+	// setup
+	request := createRequest("GET", "http://example.com/", "", [][2]string{})
 	responseRecorder := httptest.NewRecorder()
 	testHandler := http.HandlerFunc(handler)
 
@@ -38,9 +54,7 @@ func TestGetHandler(t *testing.T) {
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Basic Request Information</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Method:</td><td>GET</td></tr>")
 
-	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Other Request Headers</h2>")
-	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Accept:</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</td></tr>")
-	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Accept-Encoding:</td><td>gzip, deflate, br</td></tr>")
+	assertContainCommonHeader(t, responseRecorder.Body.String())
 
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Body</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "Empty request body.")
@@ -48,11 +62,7 @@ func TestGetHandler(t *testing.T) {
 
 func TestPostHandler(t *testing.T) {
 	// setup
-	request, err := http.NewRequest("POST", "http://example.com/", strings.NewReader("post data"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+	request := createRequest("POST", "http://example.com/", "post data", [][2]string{})
 	responseRecorder := httptest.NewRecorder()
 	testHandler := http.HandlerFunc(handler)
 
@@ -63,19 +73,17 @@ func TestPostHandler(t *testing.T) {
 	assertIsStatusOK(t, responseRecorder.Code)
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Basic Request Information</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Method:</td><td>POST</td></tr>")
-	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Other Request Headers</h2>")
+
+	assertContainCommonHeader(t, responseRecorder.Body.String())
+
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Body</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "post data")
 }
 
 func TestTCPExposerHandler(t *testing.T) {
 	// setup
-	request, err := http.NewRequest("GET", "http://echo.tcpexposer.com/", strings.NewReader(""))
-	if err != nil {
-		t.Fatal(err)
-	}
-	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-	request.Header.Add("X-Forwarded-Proto", "http")
+	tcpExposerHeaders := [][2]string{{"X-Forwarded-Proto", "http"}}
+	request := createRequest("GET", "http://echo.tcpexposer.com/", "", tcpExposerHeaders)
 	responseRecorder := httptest.NewRecorder()
 	testHandler := http.HandlerFunc(handler)
 
@@ -90,8 +98,7 @@ func TestTCPExposerHandler(t *testing.T) {
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Headers Add by TCP Exposer</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>X-Forwarded-Proto:</td><td>http</td></tr>")
 
-	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Other Request Headers</h2>")
-	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Accept:</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</td></tr>")
+	assertContainCommonHeader(t, responseRecorder.Body.String())
 
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Body</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "Empty request body.")
