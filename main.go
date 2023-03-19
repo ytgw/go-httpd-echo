@@ -7,18 +7,43 @@ import (
 	"net/http"
 )
 
+func makeTableElement(keyValues [][2]string) string {
+	var tableElement string = ""
+	tableElement += "<table><tbody>\n"
+	for _, keyValue := range keyValues {
+		key := html.EscapeString(keyValue[0])
+		val := html.EscapeString(keyValue[1])
+		tableElement += fmt.Sprintf("<tr><td>%s:</td><td>%s</td></tr>\n", key, val)
+	}
+	tableElement += "</tbody></table>"
+	return tableElement
+}
+
+func makeHTMLBody(r *http.Request, h1 string) string {
+	var htmlBody string = ""
+	htmlBody += fmt.Sprintln("<h1>" + html.EscapeString(h1) + "</h1>")
+
+	// Basic Information
+	htmlBody += fmt.Sprintln("<h2>Basic Information</h2>")
+	basicInfos := [][2]string{
+		{"Method", r.Method},
+		{"URL", r.URL.String()},
+		{"Protocol", r.Proto},
+		{"Host", r.Host},
+	}
+	htmlBody += fmt.Sprintln(makeTableElement(basicInfos))
+
+	// return
+	return htmlBody
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
+	title := "Your HTTP Request Information"
 	fmt.Fprintln(w, "<!DOCTYPE html>")
 	fmt.Fprintln(w, "<html>")
-	fmt.Fprintln(w, "<head><title>Your HTTP Request Information</title></head>")
+	fmt.Fprintln(w, "<head><title>"+html.EscapeString(title)+"</title></head>")
 	fmt.Fprintln(w, "<body>")
-	fmt.Fprintln(w, html.EscapeString(r.Method))
-	fmt.Fprintln(w, "<br>")
-	fmt.Fprintln(w, html.EscapeString(r.URL.String()))
-	fmt.Fprintln(w, "<br>")
-	fmt.Fprintln(w, html.EscapeString(r.Proto))
-	fmt.Fprintln(w, "<br>")
-	fmt.Fprintln(w, html.EscapeString(r.Host))
+	fmt.Fprintln(w, makeHTMLBody(r, title))
 	fmt.Fprintln(w, "</body>")
 	fmt.Fprintln(w, "</html>")
 }
