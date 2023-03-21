@@ -54,7 +54,7 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 
 	// TCP Exposer Header
 	if len(tcpExposerHeaders) > 0 {
-		htmlBody += fmt.Sprintln("<h2>Request Headers Add by TCP Exposer</h2>")
+		htmlBody += fmt.Sprintln("<h2>Request Headers Added by TCP Exposer</h2>")
 		sort.Slice(tcpExposerHeaders, func(i, j int) bool { return tcpExposerHeaders[i][0] < tcpExposerHeaders[j][0] })
 		htmlBody += fmt.Sprintln(makeTableElement(tcpExposerHeaders))
 	}
@@ -85,7 +85,7 @@ func makeHTMLBody(r *http.Request, h1 string) string {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	title := "Your HTTP Request Information"
+	title := "Received HTTP Request Information"
 	fmt.Fprintln(w, "<!DOCTYPE html>")
 	fmt.Fprintln(w, "<html>")
 	fmt.Fprintln(w, "<head><title>"+html.EscapeString(title)+"</title></head>")

@@ -95,7 +95,7 @@ func TestTCPExposerHandler(t *testing.T) {
 	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Basic Request Information</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>Method:</td><td>GET</td></tr>")
 
-	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Headers Add by TCP Exposer</h2>")
+	assertContainsBody(t, responseRecorder.Body.String(), "<h2>Request Headers Added by TCP Exposer</h2>")
 	assertContainsBody(t, responseRecorder.Body.String(), "<tr><td>X-Forwarded-Proto:</td><td>http</td></tr>")
 
 	assertContainCommonHeader(t, responseRecorder.Body.String())
