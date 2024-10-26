@@ -8,4 +8,5 @@ RUN go build
 FROM scratch AS release
 WORKDIR /app
 COPY --from=builder /app/go-httpd-echo ./
+EXPOSE 8080
 ENTRYPOINT ["./go-httpd-echo"]
