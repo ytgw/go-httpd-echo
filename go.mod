@@ -2,4 +2,4 @@ module github.com/ytgw/go-httpd-echo
 
 go 1.24
 
-require golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
+require golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
