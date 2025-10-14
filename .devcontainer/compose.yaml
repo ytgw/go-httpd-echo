@@ -1,0 +1,8 @@
+services:
+  app:
+    build: './'
+    command: 'sleep infinity'
+    ports:
+      - '127.0.0.1:8080:8080'
+    volumes:
+      - '../:/app/:rw'
