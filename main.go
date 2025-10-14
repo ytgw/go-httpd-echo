@@ -6,10 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
-
-	"golang.org/x/exp/slices"
 )
 
 func makeTableElement(keyValues [][2]string) string {
